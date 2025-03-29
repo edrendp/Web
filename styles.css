@@ -243,3 +243,18 @@ h1 {
 ::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* Update the logo CSS to make it circular */
+.site-logo {
+    width: 36px;
+    height: 36px;
+    object-fit: cover; /* Changed to cover to ensure the image fills the circle */
+    border-radius: 50%; /* Creates a perfect circle */
+    overflow: hidden; /* Ensures the image stays within the circle */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
