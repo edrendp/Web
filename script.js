@@ -45,6 +45,10 @@ function isRowFilledOut(participant) {
         participant.sideName && participant.sideName.trim() !== '' &&
         participant.no && participant.no.trim() !== '' &&
         participant.size && participant.size.trim() !== ''
+        // Note: Not making tshirt and saliko required fields
+        // Add them here if they should be required:
+        // && participant.tshirt && participant.tshirt.trim() !== '' 
+        // && participant.saliko && participant.saliko.trim() !== ''
     );
 }
 
@@ -80,13 +84,26 @@ function populateTable(data, isSearchResult = false) {
         calculateTotals(data);
     }
     
+    // Helper function to format yes/no fields - more minimalist approach
+    function formatYesNoField(value) {
+        if (value && value.toString().toLowerCase() === 'yes') {
+            return '<span class="check-symbol"></span>';
+        } else if (!value || value.toString().trim() === '') {
+            return '<span class="no-symbol">—</span>'; // Em dash for cleaner look
+        } else {
+            return value;
+        }
+    }
+    
     // Add each participant to the table
     filteredData.forEach(participant => {
         const row = document.createElement('tr');
         
-        // Add cells for each property
+        // Add cells for each property, including the new columns
         row.innerHTML = `
             <td>${participant.name || ''}</td>
+            <td class="center-align">${formatYesNoField(participant.tshirt)}</td>
+            <td class="center-align">${formatYesNoField(participant.saliko)}</td>
             <td>${participant.backName || ''}</td>
             <td>${participant.sideName || ''}</td>
             <td>${participant.no || ''}</td>
@@ -104,7 +121,7 @@ function populateTable(data, isSearchResult = false) {
 async function fetchDataFromGoogleSheets() {
     try {
         // Construct the Google Sheets API URL
-        const sheetRange = `${SHEET_NAME}!A:F`;
+        const sheetRange = `${SHEET_NAME}!A:H`;
         const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetRange}?key=${API_KEY}`;
         
         // Fetch data
@@ -115,14 +132,16 @@ async function fetchDataFromGoogleSheets() {
             // Extract headers and data rows
             const rows = data.values.slice(1);
             
-            // Map rows to participant objects
+            // Map rows to participant objects with the new columns
             participantData = rows.map(row => ({
                 name: row[0] || '',
-                backName: row[1] || '',
-                sideName: row[2] || '',
-                no: row[3] || '',
-                size: row[4] || '',
-                payment: row[5] || 'Not Paid'
+                tshirt: row[1] || '',
+                saliko: row[2] || '',
+                backName: row[3] || '',
+                sideName: row[4] || '',
+                no: row[5] || '',
+                size: row[6] || '',
+                payment: row[7] || 'Not Paid'
             }));
             
             // Calculate totals and populate the table with the fetched data
