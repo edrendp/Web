@@ -102,15 +102,61 @@ h1 {
 
 /* Table Container */
 .table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
+    position: relative;
     background: white;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    overflow: hidden;
+    
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.table-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Add subtle horizontal fade indicators instead of scrollbars */
+.table-container::before,
+.table-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 15px;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.table-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.9), rgba(255,255,255,0));
+}
+
+.table-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.9), rgba(255,255,255,0));
+}
+
+.table-container.can-scroll-left::before {
+    opacity: 1;
+}
+
+.table-container.can-scroll-right::after {
+    opacity: 1;
 }
 
 /* Table Styling - closely matching the dashboard table */
 #participantTable {
     width: 100%;
+    min-width: 650px; /* Ensure minimum width so all columns are visible */
     border-collapse: collapse;
     text-align: left;
 }
@@ -145,33 +191,58 @@ h1 {
     vertical-align: middle;
 }
 
-/* Payment Status Styling with color indicators */
+/* Redesigned payment status badges */
 .payment-status {
-    font-weight: 500;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
+/* Paid status styling */
 .payment-status.paid {
-    color: #2ECC71;
+    color: #34a853;
+    background-color: #f5f9f5;
+    border: 1px solid #d4e9d9;
 }
 
 .payment-status.paid::before {
-    content: '●';
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 9px;
+    border-right: 2px solid #34a853;
+    border-bottom: 2px solid #34a853;
+    transform: rotate(45deg);
     margin-right: 6px;
-    color: #2ECC71;
-    font-size: 10px;
 }
 
+/* Not paid status styling */
 .payment-status.not-paid {
-    color: #E74C3C;
+    color: #ea4335;
+    background-color: #fef7f6;
+    border: 1px solid #fadbd8;
 }
 
 .payment-status.not-paid::before {
-    content: '●';
+    content: "×";
+    font-size: 14px;
     margin-right: 6px;
-    color: #E74C3C;
-    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Make the payment status column consistent width */
+#participantTable td:last-child {
+    min-width: 100px;
+}
+
+/* Hover effect for payment status */
+.payment-status:hover {
+    filter: brightness(0.98);
 }
 
 /* Jersey size styling */
@@ -184,108 +255,108 @@ h1 {
     font-weight: 500;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .stats-container {
-        flex-direction: column;
-    }
-    
-    /* Hide less important columns on smaller screens */
-    #participantTable th:nth-child(3),
-    #participantTable td:nth-child(3),
-    #participantTable th:nth-child(5),
-    #participantTable td:nth-child(5) {
-        display: none;
-    }
+/* Ensure T-Shirt and Saliko columns are visible on all devices */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-@media (max-width: 576px) {
-    #participantTable th, 
+/* Make these columns more compact to fit better on mobile */
+#participantTable th:nth-child(2),
+#participantTable td:nth-child(2),
+#participantTable th:nth-child(3),
+#participantTable td:nth-child(3) {
+    min-width: 60px;
+    max-width: 60px !important;
+    width: 60px;
+    text-align: center;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+/* Remove any media queries that might be hiding these columns */
+@media screen and (max-width: 767px) {
+    /* Ensure no columns are hidden on mobile */
+    #participantTable th,
     #participantTable td {
-        padding: 12px 8px;
-    }
-    
-    #participantTable th:nth-child(2),
-    #participantTable td:nth-child(2),
-    #participantTable th:nth-child(7),
-    #participantTable td:nth-child(7) {
-        display: none;
+        display: table-cell !important;
     }
 }
 
-/* Subtle Animations */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-#participantTable tbody tr {
-    animation: fadeIn 0.3s ease-out forwards;
-    opacity: 0;
-}
-
-#participantTable tbody tr:nth-child(1) { animation-delay: 0.05s; }
-#participantTable tbody tr:nth-child(2) { animation-delay: 0.1s; }
-#participantTable tbody tr:nth-child(3) { animation-delay: 0.15s; }
-#participantTable tbody tr:nth-child(4) { animation-delay: 0.2s; }
-#participantTable tbody tr:nth-child(5) { animation-delay: 0.25s; }
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-/* Update the logo CSS to make it circular */
-.site-logo {
-    width: 36px;
-    height: 36px;
-    object-fit: cover; /* Changed to cover to ensure the image fills the circle */
-    border-radius: 50%; /* Creates a perfect circle */
-    overflow: hidden; /* Ensures the image stays within the circle */
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Styling for check symbols - more minimalist and professional */
+/* Refined minimalist badge styling */
 .check-symbol {
-    color: #34a853; /* Google green - more subdued professional color */
-    font-size: 14px; /* Smaller size */
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 16px;
+    height: 16px;
+    background-color: #f5f9f5; /* Very light green background */
+    border: 1px solid #34a853; /* Green border */
+    border-radius: 3px; /* Slightly rounded corners */
+    position: relative;
+    transition: all 0.2s ease;
 }
 
 .check-symbol::before {
-    content: '✓';
-    font-weight: 500;
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 9px;
+    border-right: 2px solid #34a853; /* Green checkmark */
+    border-bottom: 2px solid #34a853;
+    transform: rotate(45deg) translate(-1px, -1px);
 }
 
+.check-symbol:hover {
+    background-color: #e8f5e9; /* Slightly darker on hover */
+    transform: scale(1.05);
+}
+
+/* Empty/No symbol styling */
 .no-symbol {
-    color: #e0e0e0; /* Very light gray - subtle */
-    font-size: 12px;
-    opacity: 0.7;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
 }
 
-/* Center alignment for yes/no columns */
+/* Center alignment for the badge columns */
 .center-align {
     text-align: center;
+}
+
+/* Add hover tooltip effect for clarity */
+[title] {
+    position: relative;
+    cursor: default;
+}
+
+/* Styling for the funds stat card */
+.stat-card:nth-child(3) {
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+}
+
+.stat-card:nth-child(3) .stat-title {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.stat-card:nth-child(3) .stat-value {
+    color: white;
+    font-weight: 600;
+}
+
+/* Add currency symbol styling */
+.currency-symbol {
+    font-size: 0.85em;
+    vertical-align: baseline;
+    margin-right: 2px;
+    font-weight: 500;
 }
