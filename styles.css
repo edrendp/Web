@@ -142,6 +142,7 @@ h1 {
     color: #333;
     font-size: 14px;
     font-weight: 400;
+    vertical-align: middle;
 }
 
 /* Payment Status Styling with color indicators */
@@ -189,8 +190,11 @@ h1 {
         flex-direction: column;
     }
     
+    /* Hide less important columns on smaller screens */
     #participantTable th:nth-child(3),
-    #participantTable td:nth-child(3) {
+    #participantTable td:nth-child(3),
+    #participantTable th:nth-child(5),
+    #participantTable td:nth-child(5) {
         display: none;
     }
 }
@@ -201,8 +205,10 @@ h1 {
         padding: 12px 8px;
     }
     
-    #participantTable th:nth-child(5),
-    #participantTable td:nth-child(5) {
+    #participantTable th:nth-child(2),
+    #participantTable td:nth-child(2),
+    #participantTable th:nth-child(7),
+    #participantTable td:nth-child(7) {
         display: none;
     }
 }
@@ -257,4 +263,29 @@ h1 {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+/* Styling for check symbols - more minimalist and professional */
+.check-symbol {
+    color: #34a853; /* Google green - more subdued professional color */
+    font-size: 14px; /* Smaller size */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.check-symbol::before {
+    content: '✓';
+    font-weight: 500;
+}
+
+.no-symbol {
+    color: #e0e0e0; /* Very light gray - subtle */
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Center alignment for yes/no columns */
+.center-align {
+    text-align: center;
 }
