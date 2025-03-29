@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Jersey Management</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="logo.jpg" type="image/jpeg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="format-detection" content="telephone=no">
 </head>
 <body>
     <div class="container">
@@ -28,6 +32,13 @@
                 <div class="stat-title">Paid Status</div>
                 <div class="stat-value">
                     <span id="paidCount">0</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Collected Funds</div>
+                <div class="stat-value">
+                    <span id="totalFunds">₱0</span>
                 </div>
             </div>
         </div>
