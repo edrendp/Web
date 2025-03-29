@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jersey Management</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- SVG favicon with embedded image that appears circular -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='white'/><circle cx='50' cy='50' r='45' fill='white' stroke='%23f0f0f0' stroke-width='2'/><image href='logo.jpg' x='10' y='10' width='80' height='80' preserveAspectRatio='xMidYMid slice' clip-path='url(%23clipCircle)'/><clipPath id='clipCircle'><circle cx='50' cy='50' r='40'/></clipPath></svg>" type="image/svg+xml">
 </head>
 <body>
     <div class="container">
-        <h1>Jersey Management</h1>
+        <header class="site-header">
+            <div class="logo-container">
+                <img src="logo.jpg" alt="Jersey Management Logo" class="site-logo" width="36" height="36">
+                <h1>Jersey Management</h1>
+            </div>
+        </header>
         
         <div class="stats-container">
             <div class="stat-card">
@@ -35,8 +43,8 @@
                 <thead>
                     <tr>
                         <th>Player Name</th>
-                        <th>Jersey Name</th>
-                        <th>Nickname</th>
+                        <th>Back Name</th>
+                        <th>Side Name</th>
                         <th>Number</th>
                         <th>Size</th>
                         <th>Payment Status</th>
