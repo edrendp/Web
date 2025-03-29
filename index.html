@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jersey Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Jersey Management</h1>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-title">Total Jerseys</div>
+                <div class="stat-value">
+                    <span id="countBadge">0</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Paid Status</div>
+                <div class="stat-value">
+                    <span id="paidCount">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search jerseys...">
+        </div>
+        
+        <div class="table-container">
+            <table id="participantTable">
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Jersey Name</th>
+                        <th>Nickname</th>
+                        <th>Number</th>
+                        <th>Size</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Load configuration before the main script -->
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
