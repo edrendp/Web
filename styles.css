@@ -7,7 +7,7 @@
 
 /* Typography - Updated to match the image's font style */
 body {
-    font-family: -apple-system, "SF Pro Display", "SF Pro Text", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, "SF Pro Text", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     color: #333;
@@ -191,58 +191,39 @@ h1 {
     vertical-align: middle;
 }
 
-/* Redesigned payment status badges */
+/* Payment status styling - Updated for minimalist design */
 .payment-status {
+    text-align: center;
+}
+
+.payment-status.paid {
+    color: #2ecc71;
+}
+
+.payment-status.pending {
+    color: #7f8c8d;
+    font-weight: 400;
+}
+
+/* New minimalist status pill design */
+.status-pill {
     display: inline-flex;
     align-items: center;
-    font-size: 13px;
+    justify-content: center;
+    font-size: 12px;
     font-weight: 500;
+    letter-spacing: 0.03em;
     padding: 4px 8px;
-    border-radius: 3px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    border-radius: 4px;
+    background-color: rgba(46, 204, 113, 0.08);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    min-width: 50px;
 }
 
-/* Paid status styling */
-.payment-status.paid {
-    color: #34a853;
-    background-color: #f5f9f5;
-    border: 1px solid #d4e9d9;
-}
-
-.payment-status.paid::before {
-    content: "";
-    display: inline-block;
-    width: 6px;
-    height: 9px;
-    border-right: 2px solid #34a853;
-    border-bottom: 2px solid #34a853;
-    transform: rotate(45deg);
-    margin-right: 6px;
-}
-
-/* Not paid status styling */
-.payment-status.not-paid {
-    color: #ea4335;
-    background-color: #fef7f6;
-    border: 1px solid #fadbd8;
-}
-
-.payment-status.not-paid::before {
-    content: "×";
-    font-size: 14px;
-    margin-right: 6px;
-    font-weight: bold;
-}
-
-/* Make the payment status column consistent width */
-#participantTable td:last-child {
-    min-width: 100px;
-}
-
-/* Hover effect for payment status */
-.payment-status:hover {
-    filter: brightness(0.98);
+/* Subtle hover effect */
+.status-pill:hover {
+    background-color: rgba(46, 204, 113, 0.12);
 }
 
 /* Jersey size styling */
