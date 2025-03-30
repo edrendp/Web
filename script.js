@@ -52,11 +52,61 @@ function isRowFilledOut(participant) {
     );
 }
 
-// Calculate total valid and paid jerseys
+// Helper function to format yes/no fields - improved empty handling
+function formatYesNoField(value) {
+    if (value && (value.toString().toLowerCase() === 'yes' || value.toString().toLowerCase() === 'true')) {
+        return '<span class="check-symbol" title="Yes"></span>';
+    } else if (!value || value.toString().trim() === '') {
+        return '<span class="no-symbol" title="Not specified"></span>';
+    } else {
+        return value; // Return original value for anything else
+    }
+}
+
+// Helper function to check if tshirt or saliko is "yes"
+function isYes(value) {
+    return value && (value.toString().toLowerCase() === 'yes' || value.toString().toLowerCase() === 'true');
+}
+
+// Add this function to create the cash machine counting effect
+function animateValue(elementId, start, end, duration) {
+    const obj = document.getElementById(elementId);
+    if (!obj) return;
+    
+    // Format for Philippine Peso
+    const formatter = new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+    
+    // Save the raw value as a data attribute for future animations
+    obj.dataset.rawValue = end;
+    
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const currentValue = Math.floor(progress * (end - start) + start);
+        obj.textContent = formatter.format(currentValue);
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            // Ensure we end with the exact final value
+            obj.textContent = formatter.format(end);
+        }
+    };
+    
+    window.requestAnimationFrame(step);
+}
+
+// Modify the calculateTotals function to use the animation
 function calculateTotals(data) {
     const totalParticipants = data.filter(participant => isRowFilledOut(participant)).length;
     const paidParticipants = data.filter(participant => 
-        isRowFilledOut(participant) && participant.payment === 'Paid'
+        isRowFilledOut(participant) && isYes(participant.payment)
     ).length;
     
     // Calculate total funds collected
@@ -64,14 +114,14 @@ function calculateTotals(data) {
     
     data.forEach(participant => {
         // Only count funds from paid participants
-        if (participant.payment === 'Paid') {
-            // Check if they have T-Shirt (380 Pesos)
-            if (participant.tshirt && participant.tshirt.toString().toLowerCase() === 'yes') {
+        if (isYes(participant.payment)) {
+            // Add T-Shirt cost if selected (380 Pesos)
+            if (isYes(participant.tshirt)) {
                 totalFundsCollected += 380;
             }
             
-            // Check if they have Saliko (350 Pesos)
-            if (participant.saliko && participant.saliko.toString().toLowerCase() === 'yes') {
+            // Add Saliko cost if selected (350 Pesos)
+            if (isYes(participant.saliko)) {
                 totalFundsCollected += 350;
             }
         }
@@ -81,145 +131,15 @@ function calculateTotals(data) {
     document.getElementById('countBadge').textContent = totalParticipants;
     document.getElementById('paidCount').textContent = `${paidParticipants} / ${totalParticipants}`;
     
-    // Format the funds with Philippine Peso symbol and thousands separator
-    const formattedFunds = new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(totalFundsCollected);
+    // Get the funds element
+    const fundsElement = document.getElementById('totalFunds');
     
-    document.getElementById('totalFunds').textContent = formattedFunds;
+    // Get the previous value (or 0 if not set)
+    const previousValue = parseInt(fundsElement.dataset.rawValue || '0', 10);
+    
+    // Animate the funds value change
+    animateValue('totalFunds', previousValue, totalFundsCollected, 1000);
 }
-
-// Helper function to format yes/no fields - improved empty handling
-function formatYesNoField(value) {
-    if (value && value.toString().toLowerCase() === 'yes') {
-        return '<span class="check-symbol" title="Yes"></span>';
-    } else if (!value || value.toString().trim() === '') {
-        return '<span class="no-symbol" title="Not specified"></span>';
-    } else {
-        return value; // Return original value for anything else
-    }
-}
-
-// Function to populate the table with data
-function populateTable(data, isSearchResult = false) {
-    // Get reference to table body
-    const tableBody = document.querySelector('#participantTable tbody');
-    if (!tableBody) return;
-    
-    // Clear existing table data
-    tableBody.innerHTML = '';
-    
-    // Filter out rows that don't have all required fields
-    const filteredData = data.filter(participant => isRowFilledOut(participant));
-    
-    // If this is not a search result, calculate the overall totals
-    if (!isSearchResult) {
-        calculateTotals(data);
-    }
-    
-    // Add each participant to the table
-    filteredData.forEach(participant => {
-        const row = document.createElement('tr');
-        
-        // Add cells for each property, including the new columns
-        row.innerHTML = `
-            <td>${participant.name || ''}</td>
-            <td class="center-align">${formatYesNoField(participant.tshirt)}</td>
-            <td class="center-align">${formatYesNoField(participant.saliko)}</td>
-            <td>${participant.backName || ''}</td>
-            <td>${participant.sideName || ''}</td>
-            <td>${participant.no || ''}</td>
-            <td>${getSizeInitials(participant.size)}</td>
-            <td class="payment-status ${participant.payment === 'Paid' ? 'paid' : 'not-paid'}">
-                ${participant.payment || 'Not Paid'}
-            </td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
-    
-    // Make sure mobile layout updates
-    setTimeout(() => {
-        const tableContainer = document.querySelector('.table-container');
-        if (tableContainer) {
-            // Force a reflow to ensure proper scrolling
-            tableContainer.style.display = 'none';
-            tableContainer.offsetHeight; // Force reflow
-            tableContainer.style.display = '';
-        }
-    }, 100);
-}
-
-// Function to fetch data from Google Sheets
-async function fetchDataFromGoogleSheets() {
-    try {
-        // Construct the Google Sheets API URL
-        const sheetRange = `${SHEET_NAME}!A:H`;
-        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetRange}?key=${API_KEY}`;
-        
-        // Fetch data
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        
-        if (data.values && data.values.length > 1) {
-            // Extract headers and data rows
-            const rows = data.values.slice(1);
-            
-            // Map rows to participant objects with the new columns
-            participantData = rows.map(row => ({
-                name: row[0] || '',
-                tshirt: row[1] || '',
-                saliko: row[2] || '',
-                backName: row[3] || '',
-                sideName: row[4] || '',
-                no: row[5] || '',
-                size: row[6] || '',
-                payment: row[7] || 'Not Paid'
-            }));
-            
-            // Calculate totals and populate the table with the fetched data
-            populateTable(participantData);
-        }
-    } catch (error) {
-        console.error("Error fetching data:", error);
-    }
-}
-
-// Wait for the DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Load data immediately
-    fetchDataFromGoogleSheets();
-    
-    // Set up search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            
-            if (!searchTerm) {
-                // If search is empty, show all data
-                populateTable(participantData);
-                return;
-            }
-            
-            // Filter the data based on search term
-            const filteredData = participantData.filter(participant => {
-                // Only search in completely filled out rows
-                if (!isRowFilledOut(participant)) return false;
-                
-                return Object.values(participant).some(value => 
-                    value.toString().toLowerCase().includes(searchTerm)
-                );
-            });
-            
-            // Display search results but mark as search result so totals aren't updated
-            populateTable(filteredData, true);
-        });
-    }
-});
 
 // Comprehensive responsive handling function
 function initResponsiveFeatures() {
@@ -285,6 +205,13 @@ function initResponsiveFeatures() {
     window.addEventListener('resize', handleResponsiveLayout);
     window.addEventListener('orientationchange', handleResponsiveLayout);
     
+    // Also reapply on visibility change (when app is minimized/restored)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            setTimeout(handleResponsiveLayout, 100);
+        }
+    });
+    
     // Ensure layout updates after data loads
     const originalPopulateTable = window.populateTable;
     window.populateTable = function(data, isSearchResult) {
@@ -295,14 +222,290 @@ function initResponsiveFeatures() {
 
 // Add this to your document ready function
 document.addEventListener('DOMContentLoaded', function() {
-    initResponsiveFeatures();
+    // Add CSS to show only specific columns on mobile
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        /* Make table more compact with columns closer together */
+        #participantTable {
+            width: 100%;
+            margin: 0 auto;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        
+        /* Status pill styling - improved */
+        .status-pill {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        
+        .status-pill.paid {
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 1px 3px rgba(76, 175, 80, 0.3);
+        }
+        
+        .status-pill.pending {
+            background-color: transparent;
+            color: #FF9800;
+            border: 1px solid #FF9800;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-pill.pending::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 1px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, #FF9800, transparent);
+            animation: pendingPulse 2s infinite;
+        }
+        
+        @keyframes pendingPulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+        
+        /* Ensure all columns display properly */
+        #participantTable th,
+        #participantTable td {
+            display: table-cell;
+            visibility: visible;
+            padding: 8px 10px;
+        }
+        
+        /* Mobile-specific optimizations */
+        @media screen and (max-width: 767px) {
+            /* Make status pill more compact on mobile */
+            .status-pill {
+                padding: 2px 6px !important;
+                font-size: 0.8em !important;
+            }
+            
+            /* Specific mobile adjustments for pending pill */
+            .status-pill.pending {
+                border-width: 1px !important;
+            }
+            
+            /* Hide specific columns on mobile */
+            #participantTable th:nth-child(4),
+            #participantTable td:nth-child(4),
+            #participantTable th:nth-child(5),
+            #participantTable td:nth-child(5),
+            #participantTable th:nth-child(6),
+            #participantTable td:nth-child(6),
+            #participantTable th:nth-child(7),
+            #participantTable td:nth-child(7) {
+                display: none !important;
+                width: 0 !important;
+                max-width: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                visibility: hidden !important;
+            }
+            
+            /* Force table to fit in viewport without horizontal scroll */
+            #participantTable {
+                width: 100% !important;
+                table-layout: fixed !important;
+                min-width: auto !important;
+            }
+            
+            /* Adjust column widths for mobile */
+            #participantTable th:nth-child(1),
+            #participantTable td:nth-child(1) {
+                width: 40% !important;
+                text-align: left;
+            }
+            
+            #participantTable th:nth-child(2),
+            #participantTable td:nth-child(2),
+            #participantTable th:nth-child(3),
+            #participantTable td:nth-child(3) {
+                width: 15% !important;
+                text-align: center;
+            }
+            
+            /* Ensure payment status column is visible */
+            #participantTable th:nth-child(8),
+            #participantTable td:nth-child(8) {
+                width: 30% !important;
+                text-align: center;
+                display: table-cell !important;
+                visibility: visible !important;
+            }
+            
+            /* Hide scroll hint on mobile since we're preventing scrolling */
+            .table-scroll-hint {
+                display: none !important;
+            }
+            
+            /* Ensure container doesn't allow horizontal scroll */
+            .table-container {
+                overflow-x: hidden !important;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    `;
+    document.head.appendChild(styleElement);
     
-    // Make sure iOS devices properly handle fixed elements
-    document.documentElement.style.height = '100%';
-    document.body.style.height = '100%';
-    document.body.style.overflow = 'auto';
-    document.body.style.webkitOverflowScrolling = 'touch';
+    // Load data immediately
+    fetchDataFromGoogleSheets();
+    
+    // Set up search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                // If search is empty, show all data
+                populateTable(participantData);
+                return;
+            }
+            
+            // Filter the data based on search term
+            const filteredData = participantData.filter(participant => {
+                // Only search in completely filled out rows
+                if (!isRowFilledOut(participant)) return false;
+                
+                return Object.values(participant).some(value => 
+                    value.toString().toLowerCase().includes(searchTerm)
+                );
+            });
+            
+            // Display search results but mark as search result so totals aren't updated
+            populateTable(filteredData, true);
+        });
+    }
+    
+    // Initialize responsive features
+    initResponsiveFeatures();
 });
+
+// Function to populate the table with data
+function populateTable(data, isSearchResult = false) {
+    // Get reference to table body
+    const tableBody = document.querySelector('#participantTable tbody');
+    if (!tableBody) return;
+    
+    // Save current scroll position
+    const tableContainer = document.querySelector('.table-container');
+    const scrollTop = tableContainer ? tableContainer.scrollTop : 0;
+    
+    // Clear existing table data
+    tableBody.innerHTML = '';
+    
+    // Filter out rows that don't have all required fields
+    const filteredData = data.filter(participant => isRowFilledOut(participant));
+    
+    // If this is not a search result, calculate the overall totals
+    if (!isSearchResult) {
+        calculateTotals(data);
+    }
+    
+    // Add each participant to the table
+    filteredData.forEach(participant => {
+        const row = document.createElement('tr');
+        
+        // Check if paid
+        const isPaid = isYes(participant.payment);
+        
+        // Add cells for each property, including the new columns
+        row.innerHTML = `
+            <td>${participant.name || ''}</td>
+            <td class="center-align">${formatYesNoField(participant.tshirt)}</td>
+            <td class="center-align">${formatYesNoField(participant.saliko)}</td>
+            <td>${participant.backName || ''}</td>
+            <td>${participant.sideName || ''}</td>
+            <td>${participant.no || ''}</td>
+            <td>${getSizeInitials(participant.size)}</td>
+            <td class="payment-status ${isPaid ? 'paid' : 'pending'}">
+                ${isPaid 
+                    ? '<span class="status-pill paid">PAID</span>' 
+                    : '<span class="status-pill pending">PENDING</span>'}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Restore scroll position after a short delay
+    if (tableContainer) {
+        setTimeout(() => {
+            tableContainer.scrollTop = scrollTop;
+        }, 10);
+    }
+}
+
+// Modify the fetchDataFromGoogleSheets function to handle scroll position
+async function fetchDataFromGoogleSheets() {
+    // Save current scroll position
+    const tableContainer = document.querySelector('.table-container');
+    const scrollTop = tableContainer ? tableContainer.scrollTop : 0;
+    
+    try {
+        // Construct the Google Sheets API URL
+        const sheetRange = `${SHEET_NAME}!A:H`;
+        const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${sheetRange}?key=${API_KEY}`;
+        
+        // Fetch data
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        
+        if (data.values && data.values.length > 1) {
+            // Extract headers and data rows
+            const rows = data.values.slice(1);
+            
+            // Map rows to participant objects with the new columns
+            participantData = rows.map(row => {
+                // Handle empty checkbox values by converting FALSE to empty string
+                const tshirtValue = (row[1] && row[1].toString().toLowerCase() === 'false') ? '' : (row[1] || '');
+                const salikoValue = (row[2] && row[2].toString().toLowerCase() === 'false') ? '' : (row[2] || '');
+                const paymentValue = (row[7] && row[7].toString().toLowerCase() === 'false') ? '' : (row[7] || '');
+                
+                return {
+                    name: row[0] || '',
+                    tshirt: tshirtValue,
+                    saliko: salikoValue,
+                    backName: row[3] || '',
+                    sideName: row[4] || '',
+                    no: row[5] || '',
+                    size: row[6] || '',
+                    payment: paymentValue
+                };
+            });
+            
+            // Calculate totals and populate the table with the fetched data
+            populateTable(participantData);
+            
+            // Restore scroll position after table is populated
+            if (tableContainer) {
+                setTimeout(() => {
+                    tableContainer.scrollTop = scrollTop;
+                }, 100);
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+    
+    // Set up periodic refresh (every 5 seconds)
+    setTimeout(fetchDataFromGoogleSheets, 5000);
+}
 
 // Function to handle scroll indicators
 function setupScrollIndicators() {
@@ -357,33 +560,13 @@ function setupScrollIndicators() {
     }
 }
 
-// Add this to your initialization code
-document.addEventListener('DOMContentLoaded', function() {
-    // Other initialization code...
-    setupScrollIndicators();
-});
-
-// Make sure to call this after populating the table too
-const originalPopulateTable = window.populateTable || function(){};
-window.populateTable = function(data, isSearchResult) {
-    originalPopulateTable.call(this, data, isSearchResult);
-    
-    // Update scroll indicators after table population
-    setTimeout(setupScrollIndicators, 100);
-};
-
-// Helper function to check if tshirt or saliko is "yes"
-function isYes(value) {
-    return value && value.toString().toLowerCase() === 'yes';
-}
-
-// If you need to call this function directly somewhere else too
+// Also update the updateFundsStats function to use the animation
 function updateFundsStats(participantData) {
     let paidParticipants = 0;
     let totalFundsCollected = 0;
     
     participantData.forEach(participant => {
-        if (participant.payment === 'Paid') {
+        if (isYes(participant.payment)) {
             paidParticipants++;
             
             // Add T-Shirt cost if selected (380 Pesos)
@@ -398,13 +581,94 @@ function updateFundsStats(participantData) {
         }
     });
     
-    // Format and display the funds
-    const formattedFunds = new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(totalFundsCollected);
+    // Get the funds element
+    const fundsElement = document.getElementById('totalFunds');
     
-    document.getElementById('totalFunds').textContent = formattedFunds;
+    // Get the previous value (or 0 if not set)
+    const previousValue = parseInt(fundsElement.dataset.rawValue || '0', 10);
+    
+    // Animate the funds value change
+    animateValue('totalFunds', previousValue, totalFundsCollected, 1000);
 }
+
+// Add device detection for better layout control
+function detectDeviceType() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // Add specific device classes to body
+    if (/android/i.test(userAgent)) {
+        document.body.classList.add('android-device');
+    } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+        document.body.classList.add('ios-device');
+    }
+    
+    // Add screen size classes
+    const width = window.innerWidth;
+    if (width < 480) {
+        document.body.classList.add('xs-screen');
+    } else if (width < 768) {
+        document.body.classList.add('sm-screen');
+    }
+    
+    // Force table layout update based on device detection
+    updateTableLayoutForDevice();
+}
+
+// Update table layout specifically for the detected device
+function updateTableLayoutForDevice() {
+    const tableStyleElement = document.createElement('style');
+    const isIOS = document.body.classList.contains('ios-device');
+    const isAndroid = document.body.classList.contains('android-device');
+    const isXS = document.body.classList.contains('xs-screen');
+    
+    // Apply specific fixes based on device type
+    tableStyleElement.textContent = `
+        /* Force payment column to be visible on all devices */
+        #participantTable th:nth-child(8),
+        #participantTable td:nth-child(8) {
+            display: table-cell !important;
+            visibility: visible !important;
+            position: static !important;
+            width: auto !important;
+            min-width: 70px !important;
+        }
+        
+        /* Extra fixes for iOS */
+        ${isIOS ? `
+            #participantTable {
+                width: 100% !important;
+                table-layout: fixed !important;
+            }
+            
+            .table-container {
+                width: 100% !important;
+                overflow-x: visible !important;
+            }
+        ` : ''}
+        
+        /* Extra fixes for very small screens */
+        ${isXS ? `
+            #participantTable th,
+            #participantTable td {
+                padding: 4px 1px !important;
+                font-size: 0.85em !important;
+            }
+            
+            .status-pill {
+                padding: 1px 3px !important;
+                font-size: 0.75em !important;
+            }
+        ` : ''}
+    `;
+    
+    document.head.appendChild(tableStyleElement);
+}
+
+// Run device detection
+detectDeviceType();
+
+// Update on resize and orientation change
+window.addEventListener('resize', function() {
+    handleResponsiveLayout();
+    detectDeviceType();
+});
