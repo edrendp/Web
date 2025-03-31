@@ -5,46 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Jersey Management</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="logo.jpg" type="image/jpeg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#000000">
     <meta name="format-detection" content="telephone=no">
 </head>
 <body>
     <div class="container">
         <header class="site-header">
             <div class="logo-container">
-                <img src="logo.jpg" alt="Jersey Management Logo" class="site-logo" width="36" height="36">
-                <h1>Jersey Management</h1>
+                <div class="title-container">
+                    <h1>Jersey Management</h1>
+                    <a href="https://www.facebook.com/edrend.p/" class="author-credit" target="_blank" rel="noopener">@edrendp</a>
+                </div>
             </div>
         </header>
         
+        <!-- Stats cards -->
         <div class="stats-container">
             <div class="stat-card">
-                <div class="stat-title">Total Jerseys</div>
-                <div class="stat-value">
-                    <span id="countBadge">0</span>
-                </div>
+                <div class="stat-title">TOTAL JERSEYS</div>
+                <div class="stat-value" id="countBadge">0</div>
+                <div class="stat-subtitle">Registered</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-title">Paid Status</div>
-                <div class="stat-value">
-                    <span id="paidCount">0</span>
-                </div>
+                <div class="stat-title">PAID STATUS</div>
+                <div class="stat-value" id="paidCount">0</div>
+                <div class="stat-subtitle">Confirmed</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-title">Collected Funds</div>
-                <div class="stat-value">
-                    <span id="totalFunds">₱0</span>
-                </div>
+                <div class="stat-title">PROGRESS</div>
+                <div class="stat-value" id="totalFunds">₱0 / ₱0</div>
+                <div class="stat-subtitle">Total</div>
             </div>
         </div>
         
+        <!-- Funds progress card removed -->
+        
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search jerseys...">
+            <input type="text" id="searchInput" placeholder="Search name...">
         </div>
         
         <div class="table-container">
@@ -58,17 +59,16 @@
                         <th>Nickname</th>
                         <th>Number</th>
                         <th>Size</th>
-                        <th>Payment Status</th>
+                        <th>Payment</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Data will be populated by JavaScript -->
+                    <!-- Table content will be populated by JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
     
-    <!-- Load configuration before the main script -->
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
