@@ -30,16 +30,22 @@ function getSizeInitials(size) {
 
 // Function to update the count badges
 function updateCountBadges() {
-    // Update total jerseys count badge
-    const countBadge = document.getElementById('countBadge');
-    if (countBadge) {
-        countBadge.textContent = totalValidJerseys;
+    // Keep only the table header updates if needed
+    updateTableHeaders();
+}
+
+// Keep updateTableHeaders function to maintain the table header counts
+function updateTableHeaders() {
+    const playerNameHeader = document.getElementById('playerNameHeader');
+    const paymentStatusHeader = document.getElementById('paymentStatusHeader');
+    
+    if (playerNameHeader) {
+        playerNameHeader.textContent = `(${totalValidJerseys}) Player Name`;
     }
     
-    // Update paid jerseys count
-    const paidCount = document.getElementById('paidCount');
-    if (paidCount) {
-        paidCount.textContent = totalPaidJerseys;
+    if (paymentStatusHeader) {
+        const unpaidCount = totalValidJerseys - totalPaidJerseys;
+        paymentStatusHeader.textContent = `(${unpaidCount}) Status`;
     }
 }
 
@@ -135,211 +141,142 @@ function animateNumber(elementId, start, end, duration) {
     window.requestAnimationFrame(step);
 }
 
-// Update the updateCountBadges function to include animations
-function updateCountBadges() {
-    // Get the count badge elements
-    const countBadge = document.getElementById('countBadge');
-    const paidCount = document.getElementById('paidCount');
+// Function to calculate totals and update the UI
+// Simplify calculateTotals to only track counts needed for filtering
+// Add these functions to update the progress card
+
+// Update the progress card with collected funds and total
+function updateProgressCard(data) {
+    // Calculate total cost and collected funds
+    let totalCost = 0;
+    let collectedFunds = 0;
     
-    if (countBadge) {
-        // Get the previous value (or 0 if not set)
-        const previousValue = parseInt(countBadge.dataset.rawValue || '0', 10);
-        // Animate the total jerseys count
-        animateNumber('countBadge', previousValue, totalValidJerseys, 800);
-    }
+    data.filter(participant => isRowFilledOut(participant)).forEach(participant => {
+        // Calculate individual cost
+        let individualCost = 0;
+        if (isYes(participant.tshirt)) individualCost += 380;
+        if (isYes(participant.saliko)) individualCost += 350;
+        
+        // Add to total cost
+        totalCost += individualCost;
+        
+        // Add to collected funds if paid or partial
+        if (isYes(participant.payment)) {
+            collectedFunds += individualCost;
+        } else if (participant.downPayment > 0) {
+            collectedFunds += participant.downPayment;
+        }
+    });
     
-    if (paidCount) {
-        // Get the previous value (or 0 if not set)
-        const previousValue = parseInt(paidCount.dataset.rawValue || '0', 10);
-        // Animate the paid jerseys count
-        animateNumber('paidCount', previousValue, totalPaidJerseys, 800);
+    // Calculate remaining balance without subtracting the downpayment
+    const remainingBalance = Math.max(0, totalCost - collectedFunds);
+    
+    // Subtract 9100 from collected funds and total cost for display purposes only
+    const displayCollectedFunds = Math.max(0, collectedFunds - 9100);
+    const displayTotalCost = Math.max(0, totalCost - 9100);
+    
+    // Get elements
+    const collectedElement = document.getElementById('collectedFunds');
+    const totalElement = document.getElementById('totalAmount');
+    const remainingElement = document.getElementById('remainingBalance');
+    const progressFill = document.getElementById('progressFill');
+    
+    if (!collectedElement || !totalElement || !remainingElement || !progressFill) return;
+    
+    // Get previous values from data attributes or initialize them
+    const prevCollected = parseInt(collectedElement.dataset.rawValue || '0', 10);
+    const prevTotal = parseInt(totalElement.dataset.rawValue || '0', 10);
+    const prevRemaining = parseInt(remainingElement.dataset.rawValue || '0', 10);
+    
+    // Only animate if values have changed
+    const hasChanged = (prevCollected !== displayCollectedFunds || 
+                        prevTotal !== displayTotalCost || 
+                        prevRemaining !== remainingBalance);
+    
+    // Update data attributes regardless of animation
+    collectedElement.dataset.rawValue = displayCollectedFunds;
+    totalElement.dataset.rawValue = displayTotalCost;
+    remainingElement.dataset.rawValue = remainingBalance;
+    
+    if (hasChanged) {
+        // Animate the values with optimized animation
+        animateValue('collectedFunds', prevCollected, displayCollectedFunds, 800);
+        animateValue('totalAmount', prevTotal, displayTotalCost, 800);
+        animateValue('remainingBalance', prevRemaining, remainingBalance, 800);
+        
+        // Calculate and update progress percentage - use original values for accurate percentage
+        const percentage = totalCost > 0 ? Math.round((collectedFunds / totalCost) * 100) : 0;
+        
+        // Use CSS transitions for progress bar
+        progressFill.style.width = `${percentage}%`;
+        
+        // Add updating class for animation
+        const progressCard = document.querySelector('.progress-card');
+        if (progressCard) {
+            progressCard.classList.add('updating');
+            setTimeout(() => {
+                progressCard.classList.remove('updating');
+            }, 600);
+        }
+    } else {
+        // Just set the values without animation
+        const formatter = new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+        
+        collectedElement.textContent = formatter.format(displayCollectedFunds);
+        totalElement.textContent = formatter.format(displayTotalCost);
+        remainingElement.textContent = formatter.format(remainingBalance);
+        
+        // Set progress bar without animation - use original values for accurate percentage
+        const percentage = totalCost > 0 ? Math.round((collectedFunds / totalCost) * 100) : 0;
+        progressFill.style.width = `${percentage}%`;
     }
 }
 
-// Function to calculate totals and update the UI
-// Update the calculateTotals function to fix the Progress card animation
+// We can remove the updateProgressBar function since we've integrated it into updateProgressCard
+
+// Update the progress bar
+function updateProgressBar(percentage) {
+    const progressFill = document.getElementById('progressFill');
+    
+    if (progressFill) {
+        // Animate the width change
+        progressFill.style.width = `${percentage}%`;
+    }
+    
+    // No need to update percentage text since we removed it
+}
+
+// Update the calculateTotals function to also update the progress card
 function calculateTotals(data) {
     const totalParticipants = data.filter(participant => isRowFilledOut(participant)).length;
     const paidParticipants = data.filter(participant => 
         isRowFilledOut(participant) && isYes(participant.payment)
     ).length;
     
-    // Calculate total funds collected
-    let totalFundsCollected = 0;
-    let totalPotentialFunds = 0;
-    
-    data.forEach(participant => {
-        // Skip participants without required fields
-        if (!isRowFilledOut(participant)) return;
-        
-        // Calculate potential funds (all participants)
-        // Add T-Shirt cost if selected (380 Pesos)
-        if (isYes(participant.tshirt)) {
-            totalPotentialFunds += 380;
-            
-            // Only add to collected if paid
-            if (isYes(participant.payment)) {
-                totalFundsCollected += 380;
-            }
-        }
-        
-        // Add Saliko cost if selected (350 Pesos)
-        if (isYes(participant.saliko)) {
-            totalPotentialFunds += 350;
-            
-            // Only add to collected if paid
-            if (isYes(participant.payment)) {
-                totalFundsCollected += 350;
-            }
-        }
-    });
-    
-    // Update global counters for animations
+    // Update global counters for filtering
     totalValidJerseys = totalParticipants;
     totalPaidJerseys = paidParticipants;
     
-    // Update the count badges with animations
-    updateCountBadges();
+    // Update the table headers with the new counts
+    updateTableHeaders();
     
-    // Format for Philippine Peso
-    const formatter = new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-    
-    // Update the funds display with the new format "₱X / ₱Y"
-    const fundsElement = document.getElementById('totalFunds');
-    if (fundsElement) {
-        // Get the previous values (or 0 if not set)
-        const previousCollected = parseInt(fundsElement.dataset.rawCollected || '0', 10);
-        
-        // Store raw values for future reference
-        fundsElement.dataset.rawCollected = totalFundsCollected;
-        fundsElement.dataset.rawPotential = totalPotentialFunds;
-        
-        // Create a custom animation for the funds display that maintains the "₱X / ₱Y" format
-        animateProgressValue(fundsElement, previousCollected, totalFundsCollected, totalPotentialFunds, 800);
-    }
+    // Update the progress card
+    updateProgressCard(data);
 }
 
-// Add a new function to animate the progress value while maintaining the "₱X / ₱Y" format
-function animateProgressValue(element, startCollected, endCollected, totalPotential, duration) {
-    if (!element) return;
-    
-    // Format for Philippine Peso
-    const formatter = new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-    
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const currentValue = Math.floor(progress * (endCollected - startCollected) + startCollected);
-        
-        // Format both values
-        const formattedCollected = formatter.format(currentValue).replace('PHP', '₱');
-        const formattedPotential = formatter.format(totalPotential).replace('PHP', '₱');
-        
-        // Update the text with both values
-        element.textContent = `${formattedCollected} / ${formattedPotential}`;
-        
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        } else {
-            // Ensure we end with the exact final values
-            const finalCollected = formatter.format(endCollected).replace('PHP', '₱');
-            element.textContent = `${finalCollected} / ${formattedPotential}`;
-        }
-    };
-    
-    window.requestAnimationFrame(step);
-}
-
-// Function to update the progress bar
-function updateProgressBar(current, total) {
-    // Calculate percentage
-    let percentage = 0;
-    if (total > 0) {
-        percentage = Math.min(100, Math.round((current / total) * 100));
-    }
-    
-    // Get elements
-    const progressFill = document.getElementById('fundsFillBar');
-    const timeEstimate = document.getElementById('timeEstimate');
-    const percentageDisplay = document.getElementById('progressPercentage');
-    
-    if (!progressFill) return;
-    
-    // Update time estimate based on percentage
-    if (timeEstimate) {
-        if (percentage < 25) {
-            timeEstimate.textContent = "Just started";
-        } else if (percentage < 50) {
-            timeEstimate.textContent = "In progress";
-        } else if (percentage < 75) {
-            timeEstimate.textContent = "Almost there";
-        } else if (percentage < 100) {
-            timeEstimate.textContent = "Nearly complete";
-        } else {
-            timeEstimate.textContent = "Complete";
-        }
-    }
-    
-    // Update width for horizontal progress - ensure it's visible
-    progressFill.style.width = `${percentage}%`;
-    progressFill.style.opacity = '1';
-    
-    // Update dot position
-    const progressDot = document.querySelector('.flat-progress-dot');
-    if (progressDot) {
-        progressDot.style.left = `${percentage}%`;
-    }
-    
-    // Update percentage display with animation
-    if (percentageDisplay) {
-        animatePercentage(percentageDisplay, percentage);
-    }
-    
-    // Update markers
-    updateProgressMarkers(percentage);
-    
-    // Log for debugging
-    console.log(`Progress updated: ${percentage}%, Current: ${current}, Total: ${total}`);
-}
-
-// Make sure this function is defined
-function updateProgressMarkers(percentage) {
-    // Define the marker thresholds
-    const markers = [
-        { selector: '.marker-0', threshold: 0 },
-        { selector: '.marker-25', threshold: 25 },
-        { selector: '.marker-50', threshold: 50 },
-        { selector: '.marker-75', threshold: 75 },
-        { selector: '.marker-100', threshold: 100 }
-    ];
-    
-    // Update each marker
-    markers.forEach(marker => {
-        const markerElement = document.querySelector(marker.selector);
-        if (!markerElement) return;
-        
-        if (percentage >= marker.threshold) {
-            markerElement.classList.add('active');
-        } else {
-            markerElement.classList.remove('active');
-        }
-    });
-}
-
-// Function to animate the funds value
-// Remove the duplicate animateValue function (around line 170)
-// Remove the duplicate calculateTotals function (around line 210)
+// Empty out functions that are no longer needed
+function updatePaymentDetails() { /* Empty function */ }
+function animateProgressValue() { /* Empty function */ }
+function updateProgressBar() { /* Empty function */ }
+function updateProgressMarkers() { /* Empty function */ }
+function updateProgressDots() { /* Empty function */ }
+function updateTimelineSteps() { /* Empty function */ }
+function animatePercentage() { /* Empty function */ }
 
 // Add the missing populateTable function
 // Add these variables at the top of your script, near other global variables
@@ -369,11 +306,15 @@ async function fetchDataFromGoogleSheets() {
             const rows = data.values.slice(1);
             
             // Map rows to participant objects
+            // Inside the fetchDataFromGoogleSheets function, update the participant object creation
             participantData = rows.map(row => {
                 // Handle empty checkbox values by converting FALSE to empty string
                 const tshirtValue = (row[1] && row[1].toString().toLowerCase() === 'false') ? '' : (row[1] || '');
                 const salikoValue = (row[2] && row[2].toString().toLowerCase() === 'false') ? '' : (row[2] || '');
                 const paymentValue = (row[7] && row[7].toString().toLowerCase() === 'false') ? '' : (row[7] || '');
+                
+                // Add down payment amount (assuming it's in column I, index 8)
+                const downPaymentValue = row[8] ? parseFloat(row[8]) : 0;
                 
                 return {
                     name: row[0] || '',
@@ -383,7 +324,8 @@ async function fetchDataFromGoogleSheets() {
                     sideName: row[4] || '',
                     no: row[5] || '',
                     size: row[6] || '',
-                    payment: paymentValue
+                    payment: paymentValue,
+                    downPayment: downPaymentValue // New field for down payment
                 };
             });
             
@@ -478,11 +420,38 @@ function populateTable(data, isSearchResult = false, filterType = 'mixed') {
         // Check if paid
         const isPaid = isYes(participant.payment);
         
+        // Calculate total cost for this participant
+        let totalCost = 0;
+        if (isYes(participant.tshirt)) totalCost += 380;
+        if (isYes(participant.saliko)) totalCost += 350;
+        
+        // Calculate remaining balance
+        const downPayment = participant.downPayment || 0;
+        const remainingBalance = isPaid ? 0 : Math.max(0, totalCost - downPayment);
+        
         // Add row class based on payment status for enhanced styling
         if (isPaid) {
             row.classList.add('paid-row');
+        } else if (downPayment > 0) {
+            row.classList.add('partial-row');
         } else {
             row.classList.add('pending-row');
+        }
+        
+        // Format payment status with down payment info
+        let paymentStatusHTML = '';
+        if (isPaid) {
+            paymentStatusHTML = '<span class="status-pill paid">PAID</span>';
+        } else if (downPayment > 0) {
+            paymentStatusHTML = `
+                <span class="status-pill partial">PARTIAL</span>
+                <div class="payment-details">
+                    <div class="down-payment">₱${downPayment}</div>
+                    <div class="balance">₱${remainingBalance} bal</div>
+                </div>
+            `;
+        } else {
+            paymentStatusHTML = '<span class="status-pill pending">PENDING</span>';
         }
         
         // Add cells for each property
@@ -493,12 +462,8 @@ function populateTable(data, isSearchResult = false, filterType = 'mixed') {
             <td>${participant.backName || ''}</td>
             <td>${participant.sideName || ''}</td>
             <td>${participant.no || ''}</td>
-            <td>${getSizeInitials(participant.size)}</td>
-            <td class="payment-status ${isPaid ? 'paid' : 'pending'}">
-                ${isPaid 
-                    ? '<span class="status-pill paid">PAID</span>' 
-                    : '<span class="status-pill pending">PENDING</span>'}
-            </td>
+            <td>${getSizeInitials(participant.size) || ''}</td>
+            <td class="payment-status">${paymentStatusHTML}</td>
         `;
         
         tableBody.appendChild(row);
@@ -526,101 +491,6 @@ function populateTable(data, isSearchResult = false, filterType = 'mixed') {
     }
 }
 
-// Function to update progress dots based on percentage
-function updateProgressDots(percentage) {
-    // Define the dot thresholds
-    const dots = [
-        { selector: '.dot-25', threshold: 25 },
-        { selector: '.dot-50', threshold: 50 },
-        { selector: '.dot-75', threshold: 75 },
-        { selector: '.dot-100', threshold: 100 }
-    ];
-    
-    // Update each dot
-    dots.forEach(dot => {
-        const dotElement = document.querySelector(dot.selector);
-        if (!dotElement) return;
-        
-        if (percentage >= dot.threshold) {
-            dotElement.classList.add('active');
-        } else {
-            dotElement.classList.remove('active');
-        }
-    });
-}
-
-// Function to update progress markers based on percentage
-function updateProgressMarkers(percentage) {
-    // Define the marker thresholds
-    const markers = [
-        { selector: '.marker-25', threshold: 25 },
-        { selector: '.marker-50', threshold: 50 },
-        { selector: '.marker-75', threshold: 75 },
-        { selector: '.marker-100', threshold: 100 }
-    ];
-    
-    // Update each marker
-    markers.forEach(marker => {
-        const markerElement = document.querySelector(marker.selector);
-        if (!markerElement) return;
-        
-        if (percentage >= marker.threshold) {
-            markerElement.classList.add('active');
-        } else {
-            markerElement.classList.remove('active');
-        }
-    });
-}
-
-// Function to update timeline steps based on percentage
-// Fix the updateTimelineSteps function that's causing errors
-function updateTimelineSteps(percentage) {
-    // Define the step thresholds
-    const steps = [
-        { selector: '.step-1', threshold: 25 },
-        { selector: '.step-2', threshold: 50 },
-        { selector: '.step-3', threshold: 75 },
-        { selector: '.step-4', threshold: 100 }
-    ];
-    
-    // Update each step
-    steps.forEach((step, index) => {
-        const stepElement = document.querySelector(step.selector);
-        if (!stepElement) return;
-        
-        // Check if current percentage is between this step and the previous step
-        if (percentage >= step.threshold) {
-            stepElement.classList.add('active');
-        } else {
-            stepElement.classList.remove('active');
-        }
-    });
-}
-
-// Fix the animatePercentage function
-function animatePercentage(element, targetPercentage) {
-    if (!element) return;
-    
-    const duration = 800;
-    const startValue = parseInt(element.textContent) || 0;
-    const startTime = performance.now();
-    
-    function updatePercentage(currentTime) {
-        const elapsedTime = currentTime - startTime;
-        const progress = Math.min(elapsedTime / duration, 1);
-        
-        // Simple linear animation
-        const currentPercentage = Math.floor(startValue + (targetPercentage - startValue) * progress);
-        element.textContent = `${currentPercentage}%`;
-        
-        if (progress < 1) {
-            requestAnimationFrame(updatePercentage);
-        }
-    }
-    
-    requestAnimationFrame(updatePercentage);
-}
-
 // Improved fetchDataFromGoogleSheets function with proper error handling
 async function fetchDataFromGoogleSheets() {
     try {
@@ -642,6 +512,10 @@ async function fetchDataFromGoogleSheets() {
         if (data.values && data.values.length > 1) {
             // Extract headers and data rows
             const rows = data.values.slice(1);
+            const activeFilterBtn = document.querySelector('.filter-btn.active');
+            const currentFilterType = activeFilterBtn ? 
+                activeFilterBtn.id === 'showPaidBtn' ? 'paid' : 
+                (activeFilterBtn.id === 'showUnpaidBtn' ? 'unpaid' : 'all') : 'all';
             
             // Map rows to participant objects
             participantData = rows.map(row => {
@@ -711,6 +585,11 @@ async function fetchDataFromGoogleSheets() {
             
             // Always calculate the overall totals for the stats cards
             calculateTotals(participantData);
+
+            if (!isShowingSearchResults && currentFilterType !== 'all') {
+                filterTableRows(currentFilterType);
+            }
+
             console.log("Data loaded successfully:", participantData.length, "records");
         } else {
             console.warn("No data found in the spreadsheet or invalid format");
@@ -835,6 +714,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Setup filter buttons
+    setupFilterButtons();
+    
     // Initialize responsive features if the function exists
     if (typeof initResponsiveFeatures === 'function') {
         initResponsiveFeatures();
@@ -847,3 +729,71 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Remove any duplicate event listeners or initialization code below this point
+
+// Add event listeners for filter buttons
+// Updated setupFilterButtons function to remove All Players and default to Paid
+function setupFilterButtons() {
+    const showPaidBtn = document.getElementById('showPaidBtn');
+    const showUnpaidBtn = document.getElementById('showUnpaidBtn');
+    
+    // Store the current filter state - default to 'paid' instead of 'all'
+    let currentFilter = 'paid';
+    
+    if (showPaidBtn) {
+        showPaidBtn.addEventListener('click', () => {
+            setActiveFilter(showPaidBtn);
+            currentFilter = 'paid';
+            filterTableRows('paid');
+        });
+    }
+    
+    if (showUnpaidBtn) {
+        showUnpaidBtn.addEventListener('click', () => {
+            setActiveFilter(showUnpaidBtn);
+            currentFilter = 'unpaid';
+            filterTableRows('unpaid');
+        });
+    }
+    
+    // Override the fetchAndUpdateData function to maintain filter state
+    const originalFetchAndUpdateData = fetchAndUpdateData;
+    fetchAndUpdateData = function() {
+        return fetchDataFromGoogleSheets()
+            .then(() => {
+                // Re-apply the current filter after data refresh
+                filterTableRows(currentFilter);
+            })
+            .catch(error => {
+                console.error("Error in fetchAndUpdateData:", error);
+            });
+    };
+    
+    // Apply the default 'paid' filter on initial load
+    filterTableRows('paid');
+}
+
+function setActiveFilter(activeButton) {
+    // Remove active class from all buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    activeButton.classList.add('active');
+}
+
+function filterTableRows(filterType) {
+    const rows = document.querySelectorAll('#participantTable tbody tr');
+    
+    rows.forEach(row => {
+        if (filterType === 'all') {
+            row.style.display = '';
+        } else if (filterType === 'paid' && row.classList.contains('paid-row')) {
+            row.style.display = '';
+        } else if (filterType === 'unpaid' && !row.classList.contains('paid-row')) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
