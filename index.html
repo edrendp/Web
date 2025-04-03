@@ -9,66 +9,85 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#000000">
     <meta name="format-detection" content="telephone=no">
+    
+    <!-- SVG favicon with embedded image that appears circular -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='white'/><circle cx='50' cy='50' r='45' fill='white' stroke='%23f0f0f0' stroke-width='2'/><image href='logo.jpg' x='10' y='10' width='80' height='80' preserveAspectRatio='xMidYMid slice' clip-path='url(%23clipCircle)'/><clipPath id='clipCircle'><circle cx='50' cy='50' r='40'/></clipPath></svg>" type="image/svg+xml">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="site-header">
             <div class="logo-container">
-                <div class="title-container">
-                    <h1>Jersey Management</h1>
-                    <a href="https://www.facebook.com/edrend.p/" class="author-credit" target="_blank" rel="noopener">@edrendp</a>
-                </div>
+                <img src="logo.jpg" alt="Jersey Management Logo" class="site-logo" width="36" height="36">
+                <h1>Nexus</h1>
             </div>
+            
+            <!-- Viewer count display removed -->
         </header>
         
-        <!-- Stats cards -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-title">TOTAL JERSEYS</div>
-                <div class="stat-value" id="countBadge">0</div>
-                <div class="stat-subtitle">Registered</div>
+        <!-- Add the new progress card -->
+        <!-- Progress Card - Redesigned -->
+        <div class="progress-card">
+            <div class="progress-header">
+                <div class="progress-title">PROGRESS</div>
+                <div class="progress-amount">
+                    <span id="collectedFunds">₱0</span> / <span id="totalAmount">₱0</span>
+                </div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-title">PAID STATUS</div>
-                <div class="stat-value" id="paidCount">0</div>
-                <div class="stat-subtitle">Confirmed</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-title">PROGRESS</div>
-                <div class="stat-value" id="totalFunds">₱0 / ₱0</div>
-                <div class="stat-subtitle">Total</div>
+            <div class="progress-footer">
+                <div class="remaining-balance">
+                    <span class="remaining-label">Remaining:</span>
+                    <span id="remainingBalance" class="remaining-value">₱0</span>
+                </div>
             </div>
         </div>
         
-        <!-- Funds progress card removed -->
-        
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search name...">
+        <!-- Updated filter and search controls -->
+        <div class="controls-container">
+            <div class="filter-container">
+                <!-- Removed All Players button -->
+                <button id="showPaidBtn" class="filter-btn active">Paid</button>
+                <button id="showUnpaidBtn" class="filter-btn">Unpaid</button>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search name...">
+            </div>
         </div>
-        
+
         <div class="table-container">
             <table id="participantTable">
                 <thead>
                     <tr>
-                        <th>Player Name</th>
+                        <th id="playerNameHeader">Player Name</th>
                         <th>T-Shirt</th>
                         <th>Saliko</th>
-                        <th>Jersey Name</th>
-                        <th>Nickname</th>
+                        <th>Back Name</th>
+                        <th>Side Name</th>
                         <th>Number</th>
                         <th>Size</th>
-                        <th>Payment</th>
+                        <th id="paymentStatusHeader">Payment Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Table content will be populated by JavaScript -->
+                    <!-- Data will be populated by JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
     
+    <!-- Load Firebase configuration -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Load configuration before the main script -->
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
