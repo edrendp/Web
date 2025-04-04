@@ -3,92 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Jersey Management</title>
+    <title>Intrams Countdown</title>
     <link rel="stylesheet" href="styles.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#121212">
     <meta name="format-detection" content="telephone=no">
     
     <!-- SVG favicon with embedded image that appears circular -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='white'/><circle cx='50' cy='50' r='45' fill='white' stroke='%23f0f0f0' stroke-width='2'/><image href='logo.jpg' x='10' y='10' width='80' height='80' preserveAspectRatio='xMidYMid slice' clip-path='url(%23clipCircle)'/><clipPath id='clipCircle'><circle cx='50' cy='50' r='40'/></clipPath></svg>" type="image/svg+xml">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%231a1a1a'/><circle cx='50' cy='50' r='45' fill='%231a1a1a' stroke='%23333333' stroke-width='2'/><image href='logo.jpg' x='10' y='10' width='80' height='80' preserveAspectRatio='xMidYMid slice' clip-path='url(%23clipCircle)'/><clipPath id='clipCircle'><circle cx='50' cy='50' r='40'/></clipPath></svg>" type="image/svg+xml">
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- Import Montserrat font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header class="site-header">
-            <div class="logo-container">
-                <img src="logo.jpg" alt="Jersey Management Logo" class="site-logo" width="36" height="36">
-                <h1>Nexus</h1>
-            </div>
+    <div class="grid-container">
+        <!-- Left sidebar with title -->
+        <div class="sidebar">
+            <div class="site-title"></div>
             
-            <!-- Viewer count display removed -->
-        </header>
-        
-        <!-- Add the new progress card -->
-        <!-- Progress Card - Redesigned -->
-        <div class="progress-card">
-            <div class="progress-header">
-                <div class="progress-title">PROGRESS</div>
-                <div class="progress-amount">
-                    <span id="collectedFunds">₱0</span> / <span id="totalAmount">₱0</span>
-                </div>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-            <div class="progress-footer">
-                <div class="remaining-balance">
-                    <span class="remaining-label">Remaining:</span>
-                    <span id="remainingBalance" class="remaining-value">₱0</span>
+            <div class="main-title">
+                <div class="title-line"></div>
+                <h1>Intrams<br>Countdown</h1>
+                <div class="subtitle">
+                    <span class="organization">edrend.p</span>
+                    <span class="date-range">APRIL 7-11, 2025</span>
                 </div>
             </div>
         </div>
         
-        <!-- Updated filter and search controls -->
-        <div class="controls-container">
-            <div class="filter-container">
-                <!-- Removed All Players button -->
-                <button id="showPaidBtn" class="filter-btn active">Paid</button>
-                <button id="showUnpaidBtn" class="filter-btn">Unpaid</button>
-            </div>
+        <!-- Main content area -->
+        <div class="main-content">
+            <p class="description">
+                All players have paid their jerseys already, the data have been deleted. Thank you for visiting. The countdown below shows the time remaining until the intramural games begin.
+            </p>
             
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search name...">
+            <div class="countdown-container">
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <span id="days" class="countdown-value">00</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <span class="divider">:</span>
+                    <div class="countdown-item">
+                        <span id="hours" class="countdown-value">00</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                </div>
+                
+                <a href="#" class="view-button">View schedule</a>
             </div>
         </div>
-
-        <div class="table-container">
-            <table id="participantTable">
-                <thead>
-                    <tr>
-                        <th id="playerNameHeader">Player Name</th>
-                        <th>T-Shirt</th>
-                        <th>Saliko</th>
-                        <th>Back Name</th>
-                        <th>Side Name</th>
-                        <th>Number</th>
-                        <th>Size</th>
-                        <th id="paymentStatusHeader">Payment Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be populated by JavaScript -->
-                </tbody>
-            </table>
+        
+        <!-- Footer area with animated social links -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="https://www.facebook.com/edrend.p" target="_blank" class="social-link facebook">
+                    <span class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="16" height="16">
+                            <path fill="currentColor" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/>
+                        </svg>
+                    </span>
+                    <span class="social-text">Facebook</span>
+                </a>
+                <a href="https://www.instagram.com/edrend.p/" target="_blank" class="social-link instagram">
+                    <span class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="16" height="16">
+                            <path fill="currentColor" d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/>
+                        </svg>
+                    </span>
+                    <span class="social-text">Instagram</span>
+                </a>
+            </div>
         </div>
     </div>
-    
-    <!-- Load Firebase configuration -->
-    <script src="firebase-config.js"></script>
-    
-    <!-- Load configuration before the main script -->
-    <script src="config.js"></script>
+
+    <!-- Reference the external script file -->
     <script src="script.js"></script>
 </body>
 </html>
