@@ -72,23 +72,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-color: rgba(0, 0, 0, 0.8);
+                    background-color: rgba(0, 0, 0, 0.9);
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     z-index: 1000;
-                    backdrop-filter: blur(5px);
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                 }
                 
                 .modal-content {
-                    background-color: #1e1e1e;
+                    background-color: rgba(10, 10, 10, 0.9);
                     color: #e0e0e0;
                     padding: 40px;
-                    border-radius: 8px;
+                    border-radius: 4px;
                     max-width: 500px;
                     width: 100%;
                     position: relative;
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                    border: 1px solid #222222;
                 }
                 
                 .close-button {
@@ -99,12 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     border: none;
                     font-size: 24px;
                     cursor: pointer;
-                    color: #a0a0a0;
+                    color: #888888;
                     transition: color 0.3s ease;
                 }
                 
                 .close-button:hover {
-                    color: #e0e0e0;
+                    color: #ffffff;
                 }
                 
                 .schedule-list {
@@ -117,12 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     display: flex;
                     flex-direction: column;
                     padding: 15px 0;
-                    border-bottom: 1px solid #333333;
-                    transition: background-color 0.3s ease;
-                }
-                
-                .schedule-item:hover {
-                    background-color: #2a2a2a;
+                    border-bottom: 1px solid #222222;
                 }
                 
                 .schedule-day {
@@ -132,13 +129,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 .schedule-events {
-                    color: #a0a0a0;
+                    color: #888888;
                     font-size: 0.9rem;
                 }
                 
                 h2 {
-                    color: #4285f4;
+                    color: #ffffff;
                     margin-bottom: 20px;
+                    font-weight: 500;
+                    letter-spacing: -0.01em;
                 }
             `;
             document.head.appendChild(style);
@@ -173,9 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update button text
             if (viewButton) {
                 viewButton.textContent = 'View today\'s schedule';
-                viewButton.style.backgroundColor = '#f44336';
+                viewButton.style.backgroundColor = '#ff3e3e';
                 viewButton.style.color = 'white';
-                viewButton.style.borderColor = '#f44336';
+                viewButton.style.borderColor = '#ff3e3e';
             }
         } else if (isIntramsOver) {
             // Hide countdown after intrams
@@ -223,33 +222,4 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCountdown();
         }
     }, 1000 * 60);
-    
-    // Add social media link animations
-    const socialLinks = document.querySelectorAll('.social-link');
-    socialLinks.forEach(link => {
-        // Add touch device support for animations
-        link.addEventListener('touchstart', function() {
-            this.classList.add('touch-active');
-        });
-        
-        link.addEventListener('touchend', function() {
-            this.classList.remove('touch-active');
-            setTimeout(() => {
-                this.querySelector('.social-icon').style.animation = 'none';
-                setTimeout(() => {
-                    this.querySelector('.social-icon').style.animation = '';
-                }, 10);
-            }, 300);
-        });
-    });
-    
-    // Add subtle parallax effect to the title
-    const mainTitle = document.querySelector('.main-title h1');
-    if (mainTitle) {
-        window.addEventListener('mousemove', function(e) {
-            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-            mainTitle.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        });
-    }
 });
